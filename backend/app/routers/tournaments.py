@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+import csv
+import io
+
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -156,15 +159,16 @@ def start_tournament(tournament_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Tournament not found")
     if tournament.status == "started":
         raise HTTPException(status_code=400, detail="Turnier wurde bereits gestartet")
-    if len(tournament.players) < 2:
-        raise HTTPException(status_code=400, detail="Es müssen mindestens 2 Spieler erfasst sein")
+    registered_players = [p for p in tournament.players if p.registered]
+    if len(registered_players) < 2:
+        raise HTTPException(status_code=400, detail="Es müssen mindestens 2 angemeldete Spieler erfasst sein")
     if tournament.num_groups < 1:
         raise HTTPException(status_code=400, detail="Anzahl Gruppen muss mindestens 1 sein")
-    if len(tournament.players) < tournament.num_groups:
-        raise HTTPException(status_code=400, detail="Mehr Gruppen als Spieler — bitte Konfiguration anpassen")
+    if len(registered_players) < tournament.num_groups:
+        raise HTTPException(status_code=400, detail="Mehr Gruppen als angemeldete Spieler — bitte Konfiguration anpassen")
 
-    # Assign players to groups
-    shuffled = tournament.players[:]
+    # Assign only registered/present players to groups; no-shows are left out of the schedule.
+    shuffled = registered_players[:]
     random.shuffle(shuffled)
     for i, player in enumerate(shuffled):
         player.group_number = (i % tournament.num_groups) + 1
@@ -174,7 +178,7 @@ def start_tournament(tournament_id: int, db: Session = Depends(get_db)):
     # Build group → player id map
     from collections import defaultdict
     groups: dict[int, list[int]] = defaultdict(list)
-    for player in tournament.players:
+    for player in registered_players:
         groups[player.group_number].append(player.id)
 
     # Generate and persist game schedule
@@ -237,17 +241,6 @@ def delete_tournament(tournament_id: int, db: Session = Depends(get_db)):
     db.commit()
 
 
-def _check_number_taken(db: Session, tournament_id: int, player_number: int, exclude_player_id: int | None = None):
-    query = db.query(models.Player).filter(
-        models.Player.tournament_id == tournament_id,
-        models.Player.player_number == player_number,
-    )
-    if exclude_player_id is not None:
-        query = query.filter(models.Player.id != exclude_player_id)
-    if query.first():
-        raise HTTPException(status_code=400, detail="Spielernummer ist bereits vergeben")
-
-
 @router.post("/{tournament_id}/players", response_model=schemas.Player)
 def add_player(tournament_id: int, player: schemas.PlayerCreate, db: Session = Depends(get_db)):
     tournament = db.get(models.Tournament, tournament_id)
@@ -255,12 +248,100 @@ def add_player(tournament_id: int, player: schemas.PlayerCreate, db: Session = D
         raise HTTPException(status_code=404, detail="Tournament not found")
     if tournament.status == "started":
         raise HTTPException(status_code=400, detail="Turnier wurde bereits gestartet – keine Spieler mehr hinzufügen")
-    _check_number_taken(db, tournament_id, player.player_number)
-    db_player = models.Player(**player.model_dump(), tournament_id=tournament_id)
+    if player.player_number is not None:
+        next_number = player.player_number
+        if any(p.player_number == next_number for p in tournament.players):
+            raise HTTPException(status_code=400, detail="Spielernummer ist bereits vergeben")
+    else:
+        next_number = max((p.player_number for p in tournament.players), default=0) + 1
+    name = f"{player.vorname.strip()} {player.nachname.strip()}".strip()
+    # Manually added players are walk-ins without prior CSV pre-registration.
+    db_player = models.Player(
+        name=name,
+        player_number=next_number,
+        registered=True,
+        tournament_id=tournament_id,
+    )
     db.add(db_player)
     db.commit()
     db.refresh(db_player)
     return db_player
+
+
+@router.post("/{tournament_id}/players/import", response_model=schemas.PlayerImportResult)
+def import_players(tournament_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    tournament = db.get(models.Tournament, tournament_id)
+    if not tournament:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    if tournament.status == "started":
+        raise HTTPException(status_code=400, detail="Turnier wurde bereits gestartet – keine Spieler mehr hinzufügen")
+    if tournament.players_imported:
+        raise HTTPException(status_code=400, detail="Die Anmeldeliste wurde bereits importiert – ein erneuter Import ist nicht möglich")
+
+    raw = file.file.read()
+    try:
+        text = raw.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        raise HTTPException(status_code=400, detail="CSV-Datei konnte nicht gelesen werden (Encoding)")
+
+    reader = csv.DictReader(io.StringIO(text))
+    fieldnames = {(f or "").strip() for f in (reader.fieldnames or [])}
+    required = {"Zeitstempel", "Vorname", "Nachname", "E-Mail-Adresse"}
+    if not required.issubset(fieldnames):
+        raise HTTPException(
+            status_code=400,
+            detail=f"CSV muss die Spalten {', '.join(sorted(required))} enthalten",
+        )
+
+    existing_emails = {
+        p.email.strip().lower() for p in tournament.players if p.email
+    }
+    next_number = (
+        max((p.player_number for p in tournament.players), default=0) + 1
+    )
+
+    created: list[models.Player] = []
+    skipped_duplicates = 0
+    skipped_invalid = 0
+
+    for row in reader:
+        vorname = (row.get("Vorname") or "").strip()
+        nachname = (row.get("Nachname") or "").strip()
+        email = (row.get("E-Mail-Adresse") or "").strip()
+        name = f"{vorname} {nachname}".strip()
+
+        if not name:
+            skipped_invalid += 1
+            continue
+
+        email_key = email.lower() if email else None
+        if email_key and email_key in existing_emails:
+            skipped_duplicates += 1
+            continue
+
+        db_player = models.Player(
+            name=name,
+            email=email or None,
+            registered=False,
+            player_number=next_number,
+            tournament_id=tournament_id,
+        )
+        db.add(db_player)
+        created.append(db_player)
+        next_number += 1
+        if email_key:
+            existing_emails.add(email_key)
+
+    tournament.players_imported = True
+    db.commit()
+    for p in created:
+        db.refresh(p)
+
+    return schemas.PlayerImportResult(
+        created=created,
+        skipped_duplicates=skipped_duplicates,
+        skipped_invalid=skipped_invalid,
+    )
 
 
 @router.patch("/{tournament_id}/players/{player_id}", response_model=schemas.Player)
@@ -268,9 +349,20 @@ def update_player(tournament_id: int, player_id: int, update: schemas.PlayerUpda
     player = db.get(models.Player, player_id)
     if not player or player.tournament_id != tournament_id:
         raise HTTPException(status_code=404, detail="Player not found")
-    _check_number_taken(db, tournament_id, update.player_number, exclude_player_id=player_id)
     player.name = update.name
-    player.player_number = update.player_number
+    db.commit()
+    db.refresh(player)
+    return player
+
+
+@router.patch("/{tournament_id}/players/{player_id}/registered", response_model=schemas.Player)
+def update_player_registered(
+    tournament_id: int, player_id: int, update: schemas.PlayerRegisteredUpdate, db: Session = Depends(get_db)
+):
+    player = db.get(models.Player, player_id)
+    if not player or player.tournament_id != tournament_id:
+        raise HTTPException(status_code=404, detail="Player not found")
+    player.registered = update.registered
     db.commit()
     db.refresh(player)
     return player

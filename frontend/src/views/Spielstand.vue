@@ -149,7 +149,9 @@ async function load() {
   try {
     const [gamesRes] = await Promise.all([api.get(`/tournaments/${props.id}/games`)]);
     const games = gamesRes.data;
-    const players = props.tournament.players;
+    // No-shows (registered === false) never get a group_number when the
+    // tournament starts and never played a game — exclude them from the ranking.
+    const players = props.tournament.players.filter((p) => p.group_number != null);
     const statsMap = {};
     for (const player of players) {
       statsMap[player.id] = { player, totalPoints: 0, rounds: new Set() };
