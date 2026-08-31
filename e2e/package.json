@@ -1,0 +1,16 @@
+{
+  "name": "jass-turnier-e2e",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "report": "playwright show-report",
+    "db:up": "docker compose -f docker-compose.test.yml up -d --build --wait",
+    "db:down": "docker compose -f docker-compose.test.yml down -v"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  }
+}

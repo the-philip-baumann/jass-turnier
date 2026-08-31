@@ -1,0 +1,33 @@
+services:
+  test-db:
+    image: postgres:16-alpine
+    restart: "no"
+    environment:
+      POSTGRES_USER: jass_test
+      POSTGRES_PASSWORD: jass_test
+      POSTGRES_DB: jass_test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jass_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  # Built from the real backend Dockerfile (Python 3.12), so this matches
+  # production instead of relying on the local backend/venv.
+  test-backend:
+    build: ../backend
+    restart: "no"
+    environment:
+      DATABASE_URL: postgresql://jass_test:jass_test@test-db:5432/jass_test
+    depends_on:
+      test-db:
+        condition: service_healthy
+    ports:
+      - "8001:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 2s
+      timeout: 3s
+      retries: 20
