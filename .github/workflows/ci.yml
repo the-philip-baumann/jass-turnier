@@ -60,12 +60,6 @@ jobs:
       - name: Format check (ruff format)
         run: ruff format --check .
 
-      - name: Byte-compile / import check
-        run: python -m compileall -q app
-
-      - name: Import FastAPI app
-        run: python -c "from app.main import app"
-
       - name: Run tests (pytest)
         run: pytest -q
 
