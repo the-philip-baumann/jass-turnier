@@ -258,33 +258,6 @@ onMounted(load);
 </script>
 
 <style scoped>
-.round-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.round-tab {
-  background: transparent;
-  color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
-  font-weight: 500;
-  font-size: 0.88rem;
-  padding: 0.4rem 0.9rem;
-}
-
-.round-tab:hover {
-  background: var(--color-primary-light);
-  color: var(--color-primary-dark);
-}
-
-.round-tab.active {
-  background: var(--color-primary);
-  color: white;
-  border-color: var(--color-primary);
-}
-
 .tables-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -294,21 +267,22 @@ onMounted(load);
 .game-card {
   padding: 1rem 1.25rem;
   cursor: pointer;
-  transition: box-shadow 0.15s, transform 0.1s, border-color 0.15s;
+  transition: box-shadow 0.15s, transform 0.12s, border-color 0.15s;
 }
 
 .game-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .game-card--scored {
   border-left: 4px solid var(--color-primary);
-  background: var(--color-primary-light);
+  background: linear-gradient(145deg, #f2faf5, var(--color-primary-light));
 }
 
 .game-card--open {
   border-left: 4px solid var(--color-accent);
+  background: linear-gradient(145deg, #ffffff, var(--color-accent-light));
 }
 
 .table-header {
@@ -321,15 +295,6 @@ onMounted(load);
 .table-label {
   font-weight: 700;
   color: var(--color-primary-dark);
-}
-
-.group-badge {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--color-primary-dark);
-  background: var(--color-primary-light);
-  padding: 0.2rem 0.55rem;
-  border-radius: 999px;
 }
 
 .teams {
@@ -387,16 +352,31 @@ onMounted(load);
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(10, 24, 16, 0.5);
+  backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
+  animation: backdropIn 0.18s ease;
 }
 
 .modal-box {
   width: min(480px, 92vw);
   padding: 1.75rem 2rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: modalIn 0.22s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+@keyframes backdropIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .modal-box h3 {

@@ -23,24 +23,35 @@ const route = useRoute();
 
 <style scoped>
 header {
-  background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
+  background:
+    radial-gradient(ellipse 80% 120% at 85% -20%, rgba(217, 154, 61, 0.18) 0%, transparent 55%),
+    linear-gradient(135deg, #0f3b28, var(--color-primary-dark) 40%, var(--color-primary));
   color: white;
-  padding: 1.5rem 2.5rem 0;
+  padding: 1.6rem 2.5rem 0;
   box-shadow: var(--shadow-md);
   position: sticky;
   top: 0;
   z-index: 10;
+  border-bottom: 3px solid var(--color-accent);
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.75rem;
   margin-bottom: 1.1rem;
 }
 
 .brand-icon {
-  font-size: 1.6rem;
+  font-size: 1.7rem;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-sm);
+  width: 2.6rem;
+  height: 2.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 header h1 {

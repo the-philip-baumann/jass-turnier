@@ -187,33 +187,6 @@ onMounted(load);
 </script>
 
 <style scoped>
-.round-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.round-tab {
-  background: transparent;
-  color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
-  font-weight: 500;
-  font-size: 0.88rem;
-  padding: 0.4rem 0.9rem;
-}
-
-.round-tab:hover {
-  background: var(--color-primary-light);
-  color: var(--color-primary-dark);
-}
-
-.round-tab.active {
-  background: var(--color-primary);
-  color: white;
-  border-color: var(--color-primary);
-}
-
 .tables-grid {
   display: grid;
   gap: 1.25rem;
@@ -238,15 +211,6 @@ onMounted(load);
 .table-label {
   font-weight: 700;
   color: var(--color-primary-dark);
-}
-
-.group-badge {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--color-primary-dark);
-  background: var(--color-primary-light);
-  padding: 0.2rem 0.55rem;
-  border-radius: 999px;
 }
 
 .table-svg {

@@ -75,9 +75,21 @@ onMounted(load);
 <style scoped>
 .back-link {
   display: inline-block;
-  margin-bottom: 0.75rem;
-  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
   text-decoration: none;
+  color: var(--color-text-muted);
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.back-link:hover {
+  color: var(--color-primary-dark);
+  background: var(--color-primary-light);
 }
 
 .workspace-header {
@@ -101,11 +113,14 @@ onMounted(load);
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 0.9rem;
   color: var(--color-primary-dark);
   background: var(--color-primary-light);
-  padding: 0.6rem 1rem;
-  border-radius: var(--radius-md);
+  border: 1px solid rgba(30, 107, 79, 0.2);
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  box-shadow: var(--shadow-sm);
 }
 
 .error {
@@ -116,27 +131,34 @@ onMounted(load);
 
 .tabs {
   display: flex;
-  gap: 0.5rem;
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: 1.5rem;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 0.4rem;
+  margin-bottom: 1.75rem;
 }
 
 .tabs a {
   text-decoration: none;
   color: var(--color-text-muted);
-  font-weight: 500;
-  padding: 0.7rem 1rem;
-  border-bottom: 3px solid transparent;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.55rem 1rem;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
 .tabs a:hover {
   color: var(--color-primary-dark);
+  background: var(--color-primary-light);
 }
 
 .tabs a.router-link-active {
-  color: var(--color-primary-dark);
-  border-bottom-color: var(--color-primary);
-  font-weight: 600;
+  color: white;
+  background: linear-gradient(160deg, #257a5b, var(--color-primary) 55%, #185a41);
+  box-shadow: 0 2px 8px rgba(18, 68, 47, 0.3);
 }
 </style>

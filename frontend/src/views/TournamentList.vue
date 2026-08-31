@@ -65,6 +65,7 @@ onMounted(load);
   gap: 1rem;
   flex-wrap: wrap;
   margin-bottom: 2rem;
+  border-top: 3px solid var(--color-primary);
 }
 
 .field {
@@ -93,13 +94,15 @@ onMounted(load);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.25rem;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  padding: 1.1rem 1.4rem;
+  border-left: 4px solid transparent;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
 .tournament-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
+  border-left-color: var(--color-accent);
 }
 
 .tournament-link {
