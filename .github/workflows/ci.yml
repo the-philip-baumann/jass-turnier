@@ -66,6 +66,9 @@ jobs:
       - name: Import FastAPI app
         run: python -c "from app.main import app"
 
+      - name: Run tests (pytest)
+        run: pytest -q
+
   e2e:
     name: Playwright E2E
     runs-on: ubuntu-latest

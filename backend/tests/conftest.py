@@ -8,6 +8,7 @@ import `app.main`. Instead we build a slim, test-only FastAPI app here that
 only creates tables via `Base.metadata.create_all(...)` and includes the
 `tournaments` router - the same router `app.main` mounts.
 """
+
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient

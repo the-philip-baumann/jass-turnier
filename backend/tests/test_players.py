@@ -144,10 +144,12 @@ class TestImportPlayers:
 
     def test_import_players_happy_path(self, client):
         tournament = make_tournament(client)
-        csv_content = self._csv([
-            ("2026-01-01", "Hans", "Muster", "hans@example.com"),
-            ("2026-01-02", "Erika", "Muster", "erika@example.com"),
-        ])
+        csv_content = self._csv(
+            [
+                ("2026-01-01", "Hans", "Muster", "hans@example.com"),
+                ("2026-01-02", "Erika", "Muster", "erika@example.com"),
+            ]
+        )
         resp = client.post(
             f"/tournaments/{tournament['id']}/players/import",
             files={"file": ("players.csv", io.BytesIO(csv_content.encode("utf-8")), "text/csv")},
@@ -169,10 +171,12 @@ class TestImportPlayers:
 
     def test_import_players_duplicate_email_skipped(self, client):
         tournament = make_tournament(client)
-        csv_content = self._csv([
-            ("2026-01-01", "Hans", "Muster", "hans@example.com"),
-            ("2026-01-02", "Hans", "Zweitmal", "hans@example.com"),
-        ])
+        csv_content = self._csv(
+            [
+                ("2026-01-01", "Hans", "Muster", "hans@example.com"),
+                ("2026-01-02", "Hans", "Zweitmal", "hans@example.com"),
+            ]
+        )
         resp = client.post(
             f"/tournaments/{tournament['id']}/players/import",
             files={"file": ("players.csv", io.BytesIO(csv_content.encode("utf-8")), "text/csv")},
@@ -184,9 +188,11 @@ class TestImportPlayers:
 
     def test_import_players_invalid_row_skipped(self, client):
         tournament = make_tournament(client)
-        csv_content = self._csv([
-            ("2026-01-01", "", "", ""),
-        ])
+        csv_content = self._csv(
+            [
+                ("2026-01-01", "", "", ""),
+            ]
+        )
         resp = client.post(
             f"/tournaments/{tournament['id']}/players/import",
             files={"file": ("players.csv", io.BytesIO(csv_content.encode("utf-8")), "text/csv")},
