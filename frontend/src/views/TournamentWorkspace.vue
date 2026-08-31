@@ -34,15 +34,43 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import api from "../api/client";
+import { useKeyboardShortcuts } from "../composables/useKeyboardShortcuts";
 
 const props = defineProps({ id: { type: [String, Number], required: true } });
+const router = useRouter();
 
 const tournament = ref(null);
 const notFound = ref(false);
 const starting = ref(false);
 const startError = ref("");
+
+// Order matches the tab bar; Spielstand only appears once the tournament started.
+const tabRoutes = computed(() => {
+  const base = ["spielplan", "sitzplan", "spielerverwaltung", "konfiguration"];
+  if (tournament.value?.status === "started") base.push("spielstand");
+  return base;
+});
+
+const TAB_LABELS = {
+  spielplan: "Spielplan",
+  sitzplan: "Sitzplan",
+  spielerverwaltung: "Spielerverwaltung",
+  konfiguration: "Konfiguration",
+  spielstand: "Spielstand",
+};
+
+useKeyboardShortcuts(
+  [0, 1, 2, 3, 4].map((i) => ({
+    keys: String(i + 1),
+    description: `Tab "${TAB_LABELS[tabRoutes.value[i]] ?? "?"}" öffnen`,
+    group: "Navigation",
+    when: () => tabRoutes.value.length > i,
+    handler: () => router.push(`/tournaments/${props.id}/${tabRoutes.value[i]}`),
+  }))
+);
 
 async function load() {
   notFound.value = false;

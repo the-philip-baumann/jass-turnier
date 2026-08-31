@@ -12,13 +12,37 @@
     <main>
       <router-view />
     </main>
+
+    <ShortcutsHelp v-model:open="helpOpen" />
   </div>
 </template>
 
 <script setup>
-import { useRoute } from "vue-router";
+import { ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useKeyboardShortcuts } from "./composables/useKeyboardShortcuts";
+import ShortcutsHelp from "./components/ShortcutsHelp.vue";
 
 const route = useRoute();
+const router = useRouter();
+
+const helpOpen = ref(false);
+
+useKeyboardShortcuts([
+  {
+    keys: "?",
+    description: "Tastenkürzel-Hilfe anzeigen",
+    group: "Allgemein",
+    handler: () => { helpOpen.value = !helpOpen.value; },
+  },
+  {
+    keys: "u",
+    description: "Zurück zur Turnierübersicht",
+    group: "Allgemein",
+    when: () => !!route.params.id,
+    handler: () => router.push("/"),
+  },
+]);
 </script>
 
 <style scoped>
@@ -81,8 +105,7 @@ nav a.router-link-exact-active {
 }
 
 main {
-  padding: 2.5rem;
-  max-width: 980px;
-  margin: 0 auto;
+  padding: 2.5rem clamp(1.25rem, 4vw, 4rem);
+  width: 100%;
 }
 </style>

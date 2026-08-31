@@ -132,6 +132,7 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted } from "vue";
 import api from "../api/client";
+import { useKeyboardShortcuts } from "../composables/useKeyboardShortcuts";
 
 const props = defineProps({
   id: { type: [String, Number], required: true },
@@ -249,6 +250,16 @@ function advance() {
   }
 }
 
+useKeyboardShortcuts([
+  {
+    keys: "p",
+    description: "Präsentation starten",
+    group: "Spielstand",
+    when: () => !presentationMode.value && ranking.value.length > 0,
+    handler: startPresentation,
+  },
+]);
+
 watch(currentStageIdx, async (idx) => {
   stopConfetti?.();
   stopConfetti = null;
@@ -270,9 +281,10 @@ function launchConfetti(canvas) {
     w: Math.random() * 14 + 6,
     h: Math.random() * 7 + 3,
     color: palette[Math.floor(Math.random() * palette.length)],
-    vy: Math.random() * 3 + 1.5,
-    vx: (Math.random() - 0.5) * 1.8,
-    spin: (Math.random() - 0.5) * 0.13,
+    // Slowed to ~60% of the original fall speed for a calmer, less frantic effect.
+    vy: (Math.random() * 3 + 1.5) * 0.6,
+    vx: (Math.random() - 0.5) * 1.8 * 0.6,
+    spin: (Math.random() - 0.5) * 0.13 * 0.6,
     angle: Math.random() * Math.PI * 2,
     alpha: Math.random() * 0.35 + 0.65,
   }));
