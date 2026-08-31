@@ -7,7 +7,9 @@
         <p class="subtitle">📅 {{ tournament.date }}</p>
       </div>
       <div class="header-actions">
-        <span v-if="tournament.status === 'started'" class="status-badge">🟢 Turnier gestartet</span>
+        <span v-if="tournament.status === 'started'" class="status-badge"
+          >🟢 Turnier gestartet</span
+        >
         <button v-else @click="startTournament" :disabled="starting">
           {{ starting ? "Wird gestartet…" : "▶ Turnier starten" }}
         </button>
@@ -20,7 +22,9 @@
       <router-link :to="`/tournaments/${id}/sitzplan`">🪑 Sitzplan</router-link>
       <router-link :to="`/tournaments/${id}/spielerverwaltung`">👥 Spielerverwaltung</router-link>
       <router-link :to="`/tournaments/${id}/konfiguration`">⚙️ Konfiguration</router-link>
-      <router-link v-if="tournament.status === 'started'" :to="`/tournaments/${id}/spielstand`">🏆 Spielstand</router-link>
+      <router-link v-if="tournament.status === 'started'" :to="`/tournaments/${id}/spielstand`"
+        >🏆 Spielstand</router-link
+      >
     </nav>
 
     <div class="tab-content">
@@ -69,7 +73,7 @@ useKeyboardShortcuts(
     group: "Navigation",
     when: () => tabRoutes.value.length > i,
     handler: () => router.push(`/tournaments/${props.id}/${tabRoutes.value[i]}`),
-  }))
+  })),
 );
 
 async function load() {
@@ -112,7 +116,9 @@ onMounted(load);
   border-radius: 999px;
   border: 1px solid var(--color-border);
   background: var(--color-surface);
-  transition: color 0.15s ease, background 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 }
 
 .back-link:hover {
@@ -176,7 +182,9 @@ onMounted(load);
   font-size: 0.9rem;
   padding: 0.55rem 1rem;
   border-radius: var(--radius-sm);
-  transition: color 0.15s ease, background 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 }
 
 .tabs a:hover {

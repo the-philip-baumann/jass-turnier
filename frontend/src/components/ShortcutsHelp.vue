@@ -22,8 +22,8 @@
         </div>
 
         <p class="shortcuts-hint">
-          Kürzel wirken nicht, während du in einem Eingabefeld tippst (außer Esc).
-          Mit <kbd>?</kbd> öffnest/schliesst du dieses Fenster.
+          Kürzel wirken nicht, während du in einem Eingabefeld tippst (außer Esc). Mit
+          <kbd>?</kbd> öffnest/schliesst du dieses Fenster.
         </p>
       </div>
     </div>
@@ -32,7 +32,11 @@
 
 <script setup>
 import { computed } from "vue";
-import { useActiveShortcuts, useKeyboardShortcuts, formatKeys } from "../composables/useKeyboardShortcuts";
+import {
+  useActiveShortcuts,
+  useKeyboardShortcuts,
+  formatKeys,
+} from "../composables/useKeyboardShortcuts";
 
 const props = defineProps({
   open: { type: Boolean, required: true },

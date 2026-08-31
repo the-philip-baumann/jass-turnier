@@ -54,7 +54,9 @@
               <span class="player-number">{{ p.player_number }}</span>
               <span class="player-name">{{ p.name }}</span>
             </span>
-            <span v-if="p.registered" class="registered-badge" title="Hat sich angemeldet">✓ angemeldet</span>
+            <span v-if="p.registered" class="registered-badge" title="Hat sich angemeldet"
+              >✓ angemeldet</span
+            >
           </li>
         </ul>
       </div>
@@ -110,12 +112,18 @@ const editName = ref("");
 const registeredError = ref("");
 
 const nextNumber = computed(
-  () => Math.max(0, ...props.tournament.players.map((p) => p.player_number)) + 1
+  () => Math.max(0, ...props.tournament.players.map((p) => p.player_number)) + 1,
 );
 
 // Pre-fill the number field with the next free number whenever the player list
 // changes (e.g. after adding a player) — the organizer can still overwrite it.
-watch(nextNumber, (value) => { newNumber.value = value; }, { immediate: true });
+watch(
+  nextNumber,
+  (value) => {
+    newNumber.value = value;
+  },
+  { immediate: true },
+);
 
 const fileInput = ref(null);
 const selectedFile = ref(null);
@@ -156,7 +164,7 @@ async function importCsv() {
 }
 
 const sortedPlayers = computed(() =>
-  [...props.tournament.players].sort((a, b) => a.player_number - b.player_number)
+  [...props.tournament.players].sort((a, b) => a.player_number - b.player_number),
 );
 
 const groups = computed(() => {
@@ -223,7 +231,8 @@ async function saveRegistered(player, registered) {
     });
     emit("changed");
   } catch (e) {
-    registeredError.value = e.response?.data?.detail ?? "Anmeldestatus konnte nicht gespeichert werden.";
+    registeredError.value =
+      e.response?.data?.detail ?? "Anmeldestatus konnte nicht gespeichert werden.";
   }
 }
 
@@ -256,8 +265,12 @@ async function removePlayer(playerId) {
   letter-spacing: 0.04em;
 }
 
-.number-field input { width: 5rem; }
-.name-field input { min-width: 10rem; }
+.number-field input {
+  width: 5rem;
+}
+.name-field input {
+  min-width: 10rem;
+}
 
 .error {
   color: #c0392b;
@@ -446,8 +459,12 @@ async function removePlayer(playerId) {
   flex: 1;
 }
 
-.edit-form input[type="number"] { width: 4.5rem; }
-.edit-form input:not([type="number"]) { flex: 1; }
+.edit-form input[type="number"] {
+  width: 4.5rem;
+}
+.edit-form input:not([type="number"]) {
+  flex: 1;
+}
 
 .ghost {
   background: transparent;

@@ -8,9 +8,7 @@
 
     <div v-else-if="loading" class="empty-state">Lade Spielplan…</div>
 
-    <div v-else-if="rounds.length === 0" class="empty-state">
-      Kein Spielplan vorhanden.
-    </div>
+    <div v-else-if="rounds.length === 0" class="empty-state">Kein Spielplan vorhanden.</div>
 
     <div v-else>
       <div class="round-tabs">
@@ -222,10 +220,10 @@ async function saveScore() {
   modal.value.saving = true;
   modal.value.error = "";
   try {
-    const res = await api.patch(
-      `/tournaments/${props.id}/games/${modal.value.game.id}`,
-      { team1_score: modal.value.team1Score, team2_score: modal.value.team2Score }
-    );
+    const res = await api.patch(`/tournaments/${props.id}/games/${modal.value.game.id}`, {
+      team1_score: modal.value.team1Score,
+      team2_score: modal.value.team2Score,
+    });
     // Update local game data
     const idx = games.value.findIndex((g) => g.id === modal.value.game.id);
     if (idx !== -1) games.value[idx] = res.data;
@@ -283,7 +281,10 @@ onMounted(load);
 .game-card {
   padding: 1rem 1.25rem;
   cursor: pointer;
-  transition: box-shadow 0.15s, transform 0.12s, border-color 0.15s;
+  transition:
+    box-shadow 0.15s,
+    transform 0.12s,
+    border-color 0.15s;
 }
 
 .game-card:hover {
@@ -411,13 +412,23 @@ onMounted(load);
 }
 
 @keyframes backdropIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes modalIn {
-  from { opacity: 0; transform: translateY(14px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .modal-box h3 {

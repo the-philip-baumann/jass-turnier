@@ -110,7 +110,10 @@ onMounted(load);
   justify-content: space-between;
   padding: 1.1rem 1.4rem;
   border-left: 4px solid transparent;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .tournament-card:hover {

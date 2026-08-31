@@ -8,9 +8,7 @@
 
     <div v-else-if="loading" class="empty-state">Lade Sitzplan…</div>
 
-    <div v-else-if="rounds.length === 0" class="empty-state">
-      Kein Spielplan vorhanden.
-    </div>
+    <div v-else-if="rounds.length === 0" class="empty-state">Kein Spielplan vorhanden.</div>
 
     <div v-else>
       <!-- Round tabs -->
@@ -26,12 +24,11 @@
       </div>
 
       <!-- Tables for selected round -->
-      <div class="tables-grid" :style="`grid-template-columns: repeat(${tournament.tables_per_row}, minmax(0, 1fr))`">
-        <div
-          v-for="game in currentRoundGames"
-          :key="game.id"
-          class="table-card card"
-        >
+      <div
+        class="tables-grid"
+        :style="`grid-template-columns: repeat(${tournament.tables_per_row}, minmax(0, 1fr))`"
+      >
+        <div v-for="game in currentRoundGames" :key="game.id" class="table-card card">
           <div class="table-meta">
             <span class="table-label">Tisch {{ game.table_number }}</span>
             <span class="group-badge">Gruppe {{ groupOf(game) }}</span>
@@ -56,21 +53,30 @@
             />
             <!-- Team legend lines -->
             <line
-              :x1="SVG_W / 2 - 18" :y1="TABLE_Y + TABLE_H / 2"
-              :x2="SVG_W / 2 + 18" :y2="TABLE_Y + TABLE_H / 2"
-              stroke="rgba(255,255,255,0.25)" stroke-width="1" stroke-dasharray="3 3"
+              :x1="SVG_W / 2 - 18"
+              :y1="TABLE_Y + TABLE_H / 2"
+              :x2="SVG_W / 2 + 18"
+              :y2="TABLE_Y + TABLE_H / 2"
+              stroke="rgba(255,255,255,0.25)"
+              stroke-width="1"
+              stroke-dasharray="3 3"
             />
             <line
-              :x1="TABLE_X + TABLE_W / 2" :y1="SVG_H / 2 - 18"
-              :x2="TABLE_X + TABLE_W / 2" :y2="SVG_H / 2 + 18"
-              stroke="rgba(255,255,255,0.25)" stroke-width="1" stroke-dasharray="3 3"
+              :x1="TABLE_X + TABLE_W / 2"
+              :y1="SVG_H / 2 - 18"
+              :x2="TABLE_X + TABLE_W / 2"
+              :y2="SVG_H / 2 + 18"
+              stroke="rgba(255,255,255,0.25)"
+              stroke-width="1"
+              stroke-dasharray="3 3"
             />
 
             <!-- Seats: North (Team1[0]), South (Team1[1]), West (Team2[0]), East (Team2[1]) -->
             <g v-for="seat in seatsFor(game)" :key="seat.pos">
               <!-- Seat circle -->
               <circle
-                :cx="seat.cx" :cy="seat.cy"
+                :cx="seat.cx"
+                :cy="seat.cy"
                 r="36"
                 :fill="seat.team === 1 ? '#d99a3d' : '#3a86c8'"
                 stroke="white"
@@ -78,14 +84,17 @@
               />
               <!-- Player number -->
               <text
-                :x="seat.cx" :y="seat.cy + 1"
+                :x="seat.cx"
+                :y="seat.cy + 1"
                 text-anchor="middle"
                 dominant-baseline="middle"
                 font-size="24"
                 font-weight="700"
                 fill="white"
                 font-family="Georgia, serif"
-              >{{ seat.playerNumber }}</text>
+              >
+                {{ seat.playerNumber }}
+              </text>
             </g>
           </svg>
           <div class="legend">
@@ -122,10 +131,10 @@ const CX = SVG_W / 2;
 const CY = SVG_H / 2;
 
 const SEAT_DEFS = [
-  { pos: "N", team: 1, cx: CX,         cy: TABLE_Y - 44            },
-  { pos: "S", team: 1, cx: CX,         cy: TABLE_Y + TABLE_H + 44  },
-  { pos: "W", team: 2, cx: 42,         cy: CY                      },
-  { pos: "E", team: 2, cx: SVG_W - 42, cy: CY                      },
+  { pos: "N", team: 1, cx: CX, cy: TABLE_Y - 44 },
+  { pos: "S", team: 1, cx: CX, cy: TABLE_Y + TABLE_H + 44 },
+  { pos: "W", team: 2, cx: 42, cy: CY },
+  { pos: "E", team: 2, cx: SVG_W - 42, cy: CY },
 ];
 
 const playerMap = computed(() => {
@@ -162,7 +171,10 @@ const rounds = computed(() => {
   return Object.keys(map)
     .map(Number)
     .sort((a, b) => a - b)
-    .map((n) => ({ number: n, games: map[n].slice().sort((a, b) => a.table_number - b.table_number) }));
+    .map((n) => ({
+      number: n,
+      games: map[n].slice().sort((a, b) => a.table_number - b.table_number),
+    }));
 });
 
 const currentRoundGames = computed(() => {
@@ -224,6 +236,12 @@ onMounted(load);
   color: var(--color-text-muted);
 }
 
-.legend-item.team1 { color: #d99a3d; font-weight: 600; }
-.legend-item.team2 { color: #3a86c8; font-weight: 600; }
+.legend-item.team1 {
+  color: #d99a3d;
+  font-weight: 600;
+}
+.legend-item.team2 {
+  color: #3a86c8;
+  font-weight: 600;
+}
 </style>

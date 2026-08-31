@@ -17,7 +17,12 @@ const routes = [
       { path: "", redirect: (to) => `/tournaments/${to.params.id}/spielplan` },
       { path: "spielplan", name: "spielplan", component: Spielplan, props: true },
       { path: "sitzplan", name: "sitzplan", component: Sitzplan, props: true },
-      { path: "spielerverwaltung", name: "spielerverwaltung", component: Spielerverwaltung, props: true },
+      {
+        path: "spielerverwaltung",
+        name: "spielerverwaltung",
+        component: Spielerverwaltung,
+        props: true,
+      },
       { path: "konfiguration", name: "konfiguration", component: Konfiguration, props: true },
       { path: "spielstand", name: "spielstand", component: Spielstand, props: true },
     ],
