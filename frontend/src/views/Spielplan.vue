@@ -36,10 +36,12 @@
             <span class="group-badge">Gruppe {{ groupOf(game) }}</span>
           </div>
           <div class="teams">
-            <div class="team">
+            <div class="team team--left">
               <span class="team-label">Team 1</span>
-              <div v-for="r in team(game, 1)" :key="r.player_id" class="player-row">
-                {{ playerName(r.player_id) }}
+              <div class="player-rows">
+                <div v-for="r in team(game, 1)" :key="r.player_id" class="player-row">
+                  {{ playerName(r.player_id) }}
+                </div>
               </div>
             </div>
             <div class="vs-col">
@@ -48,10 +50,12 @@
                 {{ gameScore(game) }}
               </div>
             </div>
-            <div class="team">
+            <div class="team team--right">
               <span class="team-label">Team 2</span>
-              <div v-for="r in team(game, 2)" :key="r.player_id" class="player-row">
-                {{ playerName(r.player_id) }}
+              <div class="player-rows">
+                <div v-for="r in team(game, 2)" :key="r.player_id" class="player-row">
+                  {{ playerName(r.player_id) }}
+                </div>
               </div>
             </div>
           </div>
@@ -116,6 +120,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 import api from "../api/client";
+import { useKeyboardShortcuts } from "../composables/useKeyboardShortcuts";
 
 const props = defineProps({
   id: { type: [String, Number], required: true },
@@ -195,6 +200,17 @@ function openScoreModal(game) {
 function closeModal() {
   modal.value.open = false;
 }
+
+useKeyboardShortcuts([
+  {
+    keys: "escape",
+    description: "Score-Dialog schliessen",
+    group: "Spielplan",
+    allowInInput: true,
+    when: () => modal.value.open,
+    handler: closeModal,
+  },
+]);
 
 function onScoreInput() {
   modal.value.touched = true;
@@ -299,12 +315,25 @@ onMounted(load);
 
 .teams {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 0.5rem;
 }
 
 .team {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.team--left {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.team--right {
+  align-items: flex-end;
+  text-align: right;
 }
 
 .team-label {
@@ -317,10 +346,22 @@ onMounted(load);
   margin-bottom: 0.35rem;
 }
 
+.player-rows {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: center;
+  width: 100%;
+}
+
 .player-row {
   font-size: 0.9rem;
   padding: 0.2rem 0;
   border-bottom: 1px solid var(--color-border);
+}
+
+.team--right .player-row {
+  text-align: right;
 }
 
 .player-row:last-child {

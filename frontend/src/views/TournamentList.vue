@@ -5,7 +5,7 @@
     <form @submit.prevent="createTournament" class="card form-card">
       <div class="field">
         <label>Name des Turniers</label>
-        <input v-model="name" placeholder="z.B. Schwingerfest Jass" required />
+        <input ref="nameInput" v-model="name" placeholder="z.B. Schwingerfest Jass" required />
       </div>
       <div class="field">
         <label>Datum</label>
@@ -33,10 +33,24 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import api from "../api/client";
+import { useKeyboardShortcuts } from "../composables/useKeyboardShortcuts";
 
 const tournaments = ref([]);
 const name = ref("");
 const date = ref("");
+const nameInput = ref(null);
+
+useKeyboardShortcuts([
+  {
+    keys: "n",
+    description: "Neues Turnier anlegen (Fokus auf Namensfeld)",
+    group: "Turnierübersicht",
+    handler: (event) => {
+      event.preventDefault();
+      nameInput.value?.focus();
+    },
+  },
+]);
 
 async function load() {
   const res = await api.get("/tournaments");

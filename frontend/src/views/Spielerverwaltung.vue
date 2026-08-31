@@ -49,12 +49,12 @@
           <span class="group-count">{{ group.players.length }} Spieler</span>
         </h4>
         <ul class="card-list">
-          <li v-for="p in group.players" :key="p.id" class="card player-card">
+          <li v-for="p in group.players" :key="p.id" class="card player-card player-card--group">
             <span class="player-info">
               <span class="player-number">{{ p.player_number }}</span>
               <span class="player-name">{{ p.name }}</span>
-              <span v-if="p.registered" class="registered-badge" title="Hat sich angemeldet">✓ angemeldet</span>
             </span>
+            <span v-if="p.registered" class="registered-badge" title="Hat sich angemeldet">✓ angemeldet</span>
           </li>
         </ul>
       </div>
@@ -317,10 +317,18 @@ async function removePlayer(playerId) {
   padding: 0.85rem 1.25rem;
 }
 
+.player-card--group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
 .player-info {
   display: flex;
   align-items: center;
   gap: 0.85rem;
+  min-width: 0;
   cursor: pointer;
   border-radius: var(--radius-sm);
   padding: 0.2rem 0.4rem;
@@ -352,6 +360,8 @@ async function removePlayer(playerId) {
   background: #e6f4ea;
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .registered-toggle {
