@@ -94,6 +94,70 @@
               </div>
             </template>
 
+            <!-- CHART: Top-3-Turnierverlauf, rundenweise per Klick aufgedeckt -->
+            <template v-else-if="currentStage?.type === 'chart'">
+              <h2 class="grp-title">Turnierverlauf – Top 3</h2>
+              <div class="chart-wrap">
+                <svg viewBox="0 0 860 460" class="chart-svg">
+                  <g v-for="rk in chartRankTicks" :key="'rk' + rk">
+                    <line
+                      :x1="chartMarginL" :x2="chartW - chartMarginR"
+                      :y1="chartY(currentStage.data, rk)" :y2="chartY(currentStage.data, rk)"
+                      class="grid-line"
+                    />
+                    <text :x="chartMarginL - 12" :y="chartY(currentStage.data, rk) + 4" class="grid-label" text-anchor="end">
+                      {{ rk }}.
+                    </text>
+                  </g>
+                  <text
+                    v-for="(rd, i) in currentStage.data.rounds.slice(0, chartStep + 1)"
+                    :key="'rx' + i"
+                    :x="chartX(currentStage.data, i)" :y="chartH - 14"
+                    class="grid-label" text-anchor="middle"
+                  >
+                    R{{ rd.round }}
+                  </text>
+
+                  <g v-for="p in currentStage.data.players" :key="'lines-' + p.id">
+                    <TransitionGroup tag="g" @enter="onLineEnter">
+                      <line
+                        v-for="i in segmentIndices"
+                        :key="'seg-' + p.id + '-' + i"
+                        :x1="chartX(currentStage.data, i - 1)" :y1="chartY(currentStage.data, pointRank(currentStage.data, p.id, i - 1))"
+                        :x2="chartX(currentStage.data, i)" :y2="chartY(currentStage.data, pointRank(currentStage.data, p.id, i))"
+                        :stroke="p.color"
+                        class="chart-line"
+                      />
+                    </TransitionGroup>
+                    <TransitionGroup tag="g" @enter="onDotEnter">
+                      <circle
+                        v-for="i in pointIndices"
+                        :key="'dot-' + p.id + '-' + i"
+                        :cx="chartX(currentStage.data, i)" :cy="chartY(currentStage.data, pointRank(currentStage.data, p.id, i))"
+                        r="7"
+                        :fill="p.color"
+                        class="chart-dot"
+                      />
+                    </TransitionGroup>
+                  </g>
+
+                  <text
+                    v-for="p in currentStage.data.players"
+                    :key="'lbl-' + p.id"
+                    :x="chartX(currentStage.data, chartStep) + 14"
+                    :y="chartY(currentStage.data, pointRank(currentStage.data, p.id, chartStep)) + 4"
+                    class="chart-plabel"
+                    :fill="p.color"
+                  >
+                    {{ p.medal }} {{ p.name }}
+                  </text>
+                </svg>
+                <div class="chart-sub">
+                  Runde {{ currentStage.data.rounds[chartStep].round }} von {{ currentStage.data.rounds.length }}
+                </div>
+              </div>
+            </template>
+
             <!-- PODIUM: dramatic individual reveal -->
             <template v-else-if="currentStage?.type === 'podium'">
               <div
@@ -112,12 +176,8 @@
 
         <!-- Navigation -->
         <div class="pres-nav">
-          <button
-            v-if="currentStageIdx < presentationStages.length - 1"
-            class="btn-next"
-            @click="advance"
-          >
-            Weiter ▶
+          <button v-if="hasNext" class="btn-next" @click="advance">
+            {{ nextButtonLabel }}
           </button>
           <button v-else class="btn-done" @click="endPresentation">
             ✓ Fertig
@@ -144,12 +204,15 @@ const ranking = ref([]);
 const loading = ref(false);
 const error = ref("");
 
+const gamesCache = ref([]);
+
 async function load() {
   loading.value = true;
   error.value = "";
   try {
     const [gamesRes] = await Promise.all([api.get(`/tournaments/${props.id}/games`)]);
     const games = gamesRes.data;
+    gamesCache.value = games;
     // No-shows (registered === false) never get a group_number when the
     // tournament starts and never played a game — exclude them from the ranking.
     const players = props.tournament.players.filter((p) => p.group_number != null);
@@ -190,6 +253,114 @@ const overlayEl = ref(null);
 const confettiCanvas = ref(null);
 let stopConfetti = null;
 
+// ── Turnierverlauf (Top 3) ────────────────────────────────────────────────
+// Rekonstruiert, Runde für Runde, wer unter den Top 3 wann auf welchem
+// Rang stand — Basis für den animierten Verlaufs-Graphen der Präsentation.
+const top3Progression = computed(() => {
+  if (ranking.value.length < 3) return null;
+  const top3 = ranking.value.slice(0, 3);
+  const allPlayers = props.tournament.players.filter((p) => p.group_number != null);
+
+  const roundNums = [
+    ...new Set(
+      gamesCache.value
+        .filter((g) => g.results.some((r) => r.points > 0))
+        .map((g) => g.round_number)
+    ),
+  ].sort((a, b) => a - b);
+  if (!roundNums.length) return null;
+
+  const cumulative = {};
+  for (const p of allPlayers) cumulative[p.id] = 0;
+
+  const rounds = [];
+  for (const rn of roundNums) {
+    for (const g of gamesCache.value) {
+      if (g.round_number !== rn) continue;
+      for (const r of g.results) {
+        if (cumulative[r.player_id] != null) cumulative[r.player_id] += r.points;
+      }
+    }
+    const standing = allPlayers
+      .map((p) => ({ id: p.id, points: cumulative[p.id], num: p.player_number }))
+      .sort((a, b) => b.points - a.points || a.num - b.num);
+    const rankOf = {};
+    standing.forEach((s, i) => { rankOf[s.id] = i + 1; });
+    rounds.push({
+      round: rn,
+      ranks: Object.fromEntries(top3.map((e) => [e.player.id, rankOf[e.player.id]])),
+      points: Object.fromEntries(top3.map((e) => [e.player.id, cumulative[e.player.id]])),
+    });
+  }
+
+  const colors = ["#ffd700", "#a8a8a8", "#cd7f32"];
+  const medals = ["🥇", "🥈", "🥉"];
+  const players = top3.map((e, i) => ({
+    id: e.player.id,
+    name: e.player.name,
+    color: colors[i],
+    medal: medals[i],
+  }));
+
+  const maxRank = Math.max(
+    3,
+    ...rounds.flatMap((r) => players.map((p) => r.ranks[p.id] ?? 1))
+  );
+
+  return { players, rounds, maxRank };
+});
+
+// Sichtbarer Fortschritt innerhalb der Verlaufs-Grafik (0 = erste Runde).
+const chartStep = ref(0);
+const chartMarginL = 46, chartMarginR = 24, chartMarginT = 30, chartMarginB = 40;
+const chartW = 860, chartH = 460;
+
+function chartX(data, i) {
+  const n = data.rounds.length;
+  const innerW = chartW - chartMarginL - chartMarginR;
+  return chartMarginL + (n > 1 ? i * (innerW / (n - 1)) : innerW / 2);
+}
+function chartY(data, rank) {
+  const innerH = chartH - chartMarginT - chartMarginB;
+  const maxRank = data.maxRank;
+  return chartMarginT + (maxRank > 1 ? (rank - 1) * (innerH / (maxRank - 1)) : innerH / 2);
+}
+function pointRank(data, playerId, i) {
+  return data.rounds[i]?.ranks[playerId] ?? data.maxRank;
+}
+
+const pointIndices = computed(() => Array.from({ length: chartStep.value + 1 }, (_, i) => i));
+const segmentIndices = computed(() => Array.from({ length: chartStep.value }, (_, i) => i + 1));
+const chartRankTicks = computed(() => {
+  const data = currentStage.value?.type === "chart" ? currentStage.value.data : null;
+  if (!data) return [];
+  return Array.from({ length: data.maxRank }, (_, i) => i + 1);
+});
+
+// Klassisches "Linie zeichnen"-Reveal via stroke-dasharray/-offset.
+function onLineEnter(el, done) {
+  const len = el.getTotalLength ? el.getTotalLength() : 0;
+  el.style.strokeDasharray = `${len}`;
+  el.style.strokeDashoffset = `${len}`;
+  el.getBoundingClientRect();
+  requestAnimationFrame(() => {
+    el.style.transition = "stroke-dashoffset 0.55s cubic-bezier(0.4,0,0.2,1)";
+    el.style.strokeDashoffset = "0";
+  });
+  setTimeout(done, 600);
+}
+function onDotEnter(el, done) {
+  el.style.transformBox = "fill-box";
+  el.style.transformOrigin = "center";
+  el.style.transform = "scale(0)";
+  el.getBoundingClientRect();
+  requestAnimationFrame(() => {
+    el.style.transition = "transform 0.4s cubic-bezier(0.34,1.56,0.64,1)";
+    el.style.transform = "scale(1)";
+  });
+  setTimeout(done, 420);
+}
+
 const presentationStages = computed(() => {
   const total = ranking.value.length;
   if (!total) return [];
@@ -223,6 +394,8 @@ const presentationStages = computed(() => {
     });
   }
 
+  if (top3Progression.value) stages.push({ type: "chart", data: top3Progression.value });
+
   if (total >= 3) stages.push({ type: "podium", player: r[2], place: 3, medal: "🥉", glow: "#cd7f32" });
   if (total >= 2) stages.push({ type: "podium", player: r[1], place: 2, medal: "🥈", glow: "#a8a8a8" });
   stages.push({ type: "podium", player: r[0], place: 1, medal: "🥇", glow: "#ffd700" });
@@ -245,10 +418,29 @@ function endPresentation() {
 }
 
 function advance() {
+  const stage = currentStage.value;
+  if (stage?.type === "chart" && chartStep.value < stage.data.rounds.length - 1) {
+    chartStep.value++;
+    return;
+  }
   if (currentStageIdx.value < presentationStages.value.length - 1) {
     currentStageIdx.value++;
   }
 }
+
+const hasNext = computed(() => {
+  const stage = currentStage.value;
+  if (stage?.type === "chart" && chartStep.value < stage.data.rounds.length - 1) return true;
+  return currentStageIdx.value < presentationStages.value.length - 1;
+});
+
+const nextButtonLabel = computed(() => {
+  const stage = currentStage.value;
+  if (stage?.type === "chart" && chartStep.value < stage.data.rounds.length - 1) {
+    return "Nächste Runde ▶";
+  }
+  return "Weiter ▶";
+});
 
 useKeyboardShortcuts([
   {
@@ -263,6 +455,9 @@ useKeyboardShortcuts([
 watch(currentStageIdx, async (idx) => {
   stopConfetti?.();
   stopConfetti = null;
+  if (presentationStages.value[idx]?.type === "chart") {
+    chartStep.value = 0;
+  }
   if (presentationStages.value[idx]?.place === 1) {
     await nextTick();
     stopConfetti = launchConfetti(confettiCanvas.value);
@@ -531,6 +726,63 @@ h3 {
   font-weight: 600;
   color: #d4a843;
   font-variant-numeric: tabular-nums;
+}
+
+/* Chart stage */
+.chart-wrap {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.chart-svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.grid-line {
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 1;
+  stroke-dasharray: 3 5;
+}
+
+.grid-label {
+  fill: rgba(255, 255, 255, 0.34);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-line {
+  fill: none;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 5px currentColor);
+}
+
+.chart-dot {
+  filter: drop-shadow(0 0 6px currentColor);
+  stroke: rgba(10, 26, 14, 0.85);
+  stroke-width: 2;
+}
+
+.chart-plabel {
+  font-size: 15px;
+  font-weight: 700;
+  paint-order: stroke;
+  stroke: rgba(10, 26, 14, 0.85);
+  stroke-width: 3px;
+}
+
+.chart-sub {
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #d4a843;
+  font-weight: 600;
 }
 
 /* Podium stage */
