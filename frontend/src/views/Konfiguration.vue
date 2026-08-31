@@ -7,7 +7,10 @@
     <div v-if="tournament.status === 'started'" class="reset-section card">
       <div class="reset-info">
         <strong>Turnier zurücksetzen</strong>
-        <p>Löscht den Spielplan und setzt das Turnier in den Setup-Modus zurück. Die Spieler bleiben erhalten.</p>
+        <p>
+          Löscht den Spielplan und setzt das Turnier in den Setup-Modus zurück. Die Spieler bleiben
+          erhalten.
+        </p>
       </div>
       <button class="danger reset-btn" @click="confirmReset">Turnier zurücksetzen</button>
     </div>
@@ -15,11 +18,23 @@
     <form @submit.prevent="save" class="card form-card">
       <div class="field">
         <label>Anzahl Runden</label>
-        <input v-model.number="rounds" type="number" min="1" required :disabled="tournament.status === 'started'" />
+        <input
+          v-model.number="rounds"
+          type="number"
+          min="1"
+          required
+          :disabled="tournament.status === 'started'"
+        />
       </div>
       <div class="field">
         <label>Anzahl Gruppen</label>
-        <input v-model.number="numGroups" type="number" min="1" required :disabled="tournament.status === 'started'" />
+        <input
+          v-model.number="numGroups"
+          type="number"
+          min="1"
+          required
+          :disabled="tournament.status === 'started'"
+        />
       </div>
       <div class="field">
         <label>Tische pro Reihe</label>
@@ -60,7 +75,7 @@ watch(
     tablesPerRow.value = t.tables_per_row;
     anzahlAnsagen.value = t.anzahl_ansagen ?? 1;
   },
-  { deep: true }
+  { deep: true },
 );
 
 async function confirmReset() {

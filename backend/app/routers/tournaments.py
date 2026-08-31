@@ -1,7 +1,7 @@
 import csv
 import io
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -34,7 +34,9 @@ def get_tournament(tournament_id: int, db: Session = Depends(get_db)):
 
 
 @router.patch("/{tournament_id}", response_model=schemas.Tournament)
-def update_tournament(tournament_id: int, update: schemas.TournamentUpdate, db: Session = Depends(get_db)):
+def update_tournament(
+    tournament_id: int, update: schemas.TournamentUpdate, db: Session = Depends(get_db)
+):
     tournament = db.get(models.Tournament, tournament_id)
     if not tournament:
         raise HTTPException(status_code=404, detail="Tournament not found")
@@ -79,7 +81,8 @@ def _form_round(
 
         # Only triples where every internal pair is also fresh
         valid_triples = [
-            t for t in combinations(cands, 3)
+            t
+            for t in combinations(cands, 3)
             if all(
                 (min(t[i], t[j]), max(t[i], t[j])) not in all_pairs
                 for i in range(3)
@@ -146,14 +149,13 @@ def _generate_schedule(group_player_ids: list[int], num_rounds: int) -> list[lis
         if not failed:
             return all_rounds
 
-    raise ValueError(
-        "Konnte keinen gültigen Spielplan generieren — bitte Rundenanzahl reduzieren"
-    )
+    raise ValueError("Konnte keinen gültigen Spielplan generieren — bitte Rundenanzahl reduzieren")
 
 
 @router.post("/{tournament_id}/start", response_model=schemas.TournamentDetail)
 def start_tournament(tournament_id: int, db: Session = Depends(get_db)):
     import random
+
     tournament = db.get(models.Tournament, tournament_id)
     if not tournament:
         raise HTTPException(status_code=404, detail="Tournament not found")
@@ -161,11 +163,16 @@ def start_tournament(tournament_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Turnier wurde bereits gestartet")
     registered_players = [p for p in tournament.players if p.registered]
     if len(registered_players) < 2:
-        raise HTTPException(status_code=400, detail="Es müssen mindestens 2 angemeldete Spieler erfasst sein")
+        raise HTTPException(
+            status_code=400, detail="Es müssen mindestens 2 angemeldete Spieler erfasst sein"
+        )
     if tournament.num_groups < 1:
         raise HTTPException(status_code=400, detail="Anzahl Gruppen muss mindestens 1 sein")
     if len(registered_players) < tournament.num_groups:
-        raise HTTPException(status_code=400, detail="Mehr Gruppen als angemeldete Spieler — bitte Konfiguration anpassen")
+        raise HTTPException(
+            status_code=400,
+            detail="Mehr Gruppen als angemeldete Spieler — bitte Konfiguration anpassen",
+        )
 
     # Assign only registered/present players to groups; no-shows are left out of the schedule.
     shuffled = registered_players[:]
@@ -177,6 +184,7 @@ def start_tournament(tournament_id: int, db: Session = Depends(get_db)):
 
     # Build group → player id map
     from collections import defaultdict
+
     groups: dict[int, list[int]] = defaultdict(list)
     for player in registered_players:
         groups[player.group_number].append(player.id)
@@ -247,7 +255,10 @@ def add_player(tournament_id: int, player: schemas.PlayerCreate, db: Session = D
     if not tournament:
         raise HTTPException(status_code=404, detail="Tournament not found")
     if tournament.status == "started":
-        raise HTTPException(status_code=400, detail="Turnier wurde bereits gestartet – keine Spieler mehr hinzufügen")
+        raise HTTPException(
+            status_code=400,
+            detail="Turnier wurde bereits gestartet – keine Spieler mehr hinzufügen",
+        )
     if player.player_number is not None:
         next_number = player.player_number
         if any(p.player_number == next_number for p in tournament.players):
@@ -274,15 +285,25 @@ def import_players(tournament_id: int, file: UploadFile = File(...), db: Session
     if not tournament:
         raise HTTPException(status_code=404, detail="Tournament not found")
     if tournament.status == "started":
-        raise HTTPException(status_code=400, detail="Turnier wurde bereits gestartet – keine Spieler mehr hinzufügen")
+        raise HTTPException(
+            status_code=400,
+            detail="Turnier wurde bereits gestartet – keine Spieler mehr hinzufügen",
+        )
     if tournament.players_imported:
-        raise HTTPException(status_code=400, detail="Die Anmeldeliste wurde bereits importiert – ein erneuter Import ist nicht möglich")
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Die Anmeldeliste wurde bereits importiert – ein erneuter Import ist nicht möglich"
+            ),
+        )
 
     raw = file.file.read()
     try:
         text = raw.decode("utf-8-sig")
     except UnicodeDecodeError:
-        raise HTTPException(status_code=400, detail="CSV-Datei konnte nicht gelesen werden (Encoding)")
+        raise HTTPException(
+            status_code=400, detail="CSV-Datei konnte nicht gelesen werden (Encoding)"
+        )
 
     reader = csv.DictReader(io.StringIO(text))
     fieldnames = {(f or "").strip() for f in (reader.fieldnames or [])}
@@ -293,12 +314,8 @@ def import_players(tournament_id: int, file: UploadFile = File(...), db: Session
             detail=f"CSV muss die Spalten {', '.join(sorted(required))} enthalten",
         )
 
-    existing_emails = {
-        p.email.strip().lower() for p in tournament.players if p.email
-    }
-    next_number = (
-        max((p.player_number for p in tournament.players), default=0) + 1
-    )
+    existing_emails = {p.email.strip().lower() for p in tournament.players if p.email}
+    next_number = max((p.player_number for p in tournament.players), default=0) + 1
 
     created: list[models.Player] = []
     skipped_duplicates = 0
@@ -345,7 +362,9 @@ def import_players(tournament_id: int, file: UploadFile = File(...), db: Session
 
 
 @router.patch("/{tournament_id}/players/{player_id}", response_model=schemas.Player)
-def update_player(tournament_id: int, player_id: int, update: schemas.PlayerUpdate, db: Session = Depends(get_db)):
+def update_player(
+    tournament_id: int, player_id: int, update: schemas.PlayerUpdate, db: Session = Depends(get_db)
+):
     player = db.get(models.Player, player_id)
     if not player or player.tournament_id != tournament_id:
         raise HTTPException(status_code=404, detail="Player not found")
@@ -357,7 +376,10 @@ def update_player(tournament_id: int, player_id: int, update: schemas.PlayerUpda
 
 @router.patch("/{tournament_id}/players/{player_id}/registered", response_model=schemas.Player)
 def update_player_registered(
-    tournament_id: int, player_id: int, update: schemas.PlayerRegisteredUpdate, db: Session = Depends(get_db)
+    tournament_id: int,
+    player_id: int,
+    update: schemas.PlayerRegisteredUpdate,
+    db: Session = Depends(get_db),
 ):
     player = db.get(models.Player, player_id)
     if not player or player.tournament_id != tournament_id:
@@ -375,7 +397,10 @@ def remove_player(tournament_id: int, player_id: int, db: Session = Depends(get_
         raise HTTPException(status_code=404, detail="Player not found")
     tournament = db.get(models.Tournament, tournament_id)
     if tournament.status == "started":
-        raise HTTPException(status_code=400, detail="Turnier wurde bereits gestartet – Spieler können nicht entfernt werden")
+        raise HTTPException(
+            status_code=400,
+            detail="Turnier wurde bereits gestartet – Spieler können nicht entfernt werden",
+        )
     db.delete(player)
     db.commit()
 
@@ -395,6 +420,7 @@ def create_game(tournament_id: int, game: schemas.GameCreate, db: Session = Depe
 @router.get("/{tournament_id}/games", response_model=list[schemas.Game])
 def list_games(tournament_id: int, db: Session = Depends(get_db)):
     from sqlalchemy.orm import joinedload
+
     return (
         db.query(models.Game)
         .filter(models.Game.tournament_id == tournament_id)
@@ -404,8 +430,11 @@ def list_games(tournament_id: int, db: Session = Depends(get_db)):
 
 
 @router.patch("/{tournament_id}/games/{game_id}", response_model=schemas.Game)
-def update_game_score(tournament_id: int, game_id: int, score: schemas.GameScoreUpdate, db: Session = Depends(get_db)):
+def update_game_score(
+    tournament_id: int, game_id: int, score: schemas.GameScoreUpdate, db: Session = Depends(get_db)
+):
     from sqlalchemy.orm import joinedload
+
     game = (
         db.query(models.Game)
         .filter(models.Game.id == game_id, models.Game.tournament_id == tournament_id)
@@ -419,7 +448,10 @@ def update_game_score(tournament_id: int, game_id: int, score: schemas.GameScore
     if score.team1_score + score.team2_score != expected:
         raise HTTPException(
             status_code=422,
-            detail=f"Summe der Scores muss {expected} ergeben (157 × {tournament.anzahl_ansagen} Ansagen)",
+            detail=(
+                f"Summe der Scores muss {expected} ergeben "
+                f"(157 × {tournament.anzahl_ansagen} Ansagen)"
+            ),
         )
     for result in game.results:
         result.points = score.team1_score if result.team == 1 else score.team2_score
@@ -429,7 +461,12 @@ def update_game_score(tournament_id: int, game_id: int, score: schemas.GameScore
 
 
 @router.post("/{tournament_id}/games/{game_id}/results", response_model=schemas.GameResult)
-def add_result(tournament_id: int, game_id: int, result: schemas.GameResultCreate, db: Session = Depends(get_db)):
+def add_result(
+    tournament_id: int,
+    game_id: int,
+    result: schemas.GameResultCreate,
+    db: Session = Depends(get_db),
+):
     game = db.get(models.Game, game_id)
     if not game or game.tournament_id != tournament_id:
         raise HTTPException(status_code=404, detail="Game not found")

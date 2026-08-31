@@ -33,7 +33,9 @@ useKeyboardShortcuts([
     keys: "?",
     description: "Tastenkürzel-Hilfe anzeigen",
     group: "Allgemein",
-    handler: () => { helpOpen.value = !helpOpen.value; },
+    handler: () => {
+      helpOpen.value = !helpOpen.value;
+    },
   },
   {
     keys: "u",
@@ -100,7 +102,9 @@ nav a {
   padding: 0.7rem 1rem;
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   border-bottom: 3px solid transparent;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 nav a:hover {

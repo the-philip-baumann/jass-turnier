@@ -19,11 +19,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr
-          v-for="(entry, idx) in ranking"
-          :key="entry.player.id"
-          :class="{ 'top-row': idx < 3 }"
-        >
+        <tr v-for="(entry, idx) in ranking" :key="entry.player.id" :class="{ 'top-row': idx < 3 }">
           <td class="rank-col">
             <span v-if="idx === 0">🥇</span>
             <span v-else-if="idx === 1">🥈</span>
@@ -73,9 +69,13 @@
           <div
             :key="currentStageIdx"
             class="pres-stage"
-            :style="currentStage?.type === 'podium'
-              ? { background: `radial-gradient(ellipse 70% 55% at 50% 52%, ${currentStage.glow}22 0%, transparent 68%)` }
-              : undefined"
+            :style="
+              currentStage?.type === 'podium'
+                ? {
+                    background: `radial-gradient(ellipse 70% 55% at 50% 52%, ${currentStage.glow}22 0%, transparent 68%)`,
+                  }
+                : undefined
+            "
           >
             <!-- GROUP: list of players revealed with stagger -->
             <template v-if="currentStage?.type === 'group'">
@@ -101,19 +101,28 @@
                 <svg viewBox="0 0 860 460" class="chart-svg">
                   <g v-for="rk in chartRankTicks" :key="'rk' + rk">
                     <line
-                      :x1="chartMarginL" :x2="chartW - chartMarginR"
-                      :y1="chartY(currentStage.data, rk)" :y2="chartY(currentStage.data, rk)"
+                      :x1="chartMarginL"
+                      :x2="chartW - chartMarginR"
+                      :y1="chartY(currentStage.data, rk)"
+                      :y2="chartY(currentStage.data, rk)"
                       class="grid-line"
                     />
-                    <text :x="chartMarginL - 12" :y="chartY(currentStage.data, rk) + 4" class="grid-label" text-anchor="end">
+                    <text
+                      :x="chartMarginL - 12"
+                      :y="chartY(currentStage.data, rk) + 4"
+                      class="grid-label"
+                      text-anchor="end"
+                    >
                       {{ rk }}.
                     </text>
                   </g>
                   <text
                     v-for="(rd, i) in currentStage.data.rounds.slice(0, chartStep + 1)"
                     :key="'rx' + i"
-                    :x="chartX(currentStage.data, i)" :y="chartH - 14"
-                    class="grid-label" text-anchor="middle"
+                    :x="chartX(currentStage.data, i)"
+                    :y="chartH - 14"
+                    class="grid-label"
+                    text-anchor="middle"
                   >
                     R{{ rd.round }}
                   </text>
@@ -123,8 +132,10 @@
                       <line
                         v-for="i in segmentIndices"
                         :key="'seg-' + p.id + '-' + i"
-                        :x1="chartX(currentStage.data, i - 1)" :y1="chartY(currentStage.data, pointRank(currentStage.data, p.id, i - 1))"
-                        :x2="chartX(currentStage.data, i)" :y2="chartY(currentStage.data, pointRank(currentStage.data, p.id, i))"
+                        :x1="chartX(currentStage.data, i - 1)"
+                        :y1="chartY(currentStage.data, pointRank(currentStage.data, p.id, i - 1))"
+                        :x2="chartX(currentStage.data, i)"
+                        :y2="chartY(currentStage.data, pointRank(currentStage.data, p.id, i))"
                         :stroke="p.color"
                         class="chart-line"
                       />
@@ -133,7 +144,8 @@
                       <circle
                         v-for="i in pointIndices"
                         :key="'dot-' + p.id + '-' + i"
-                        :cx="chartX(currentStage.data, i)" :cy="chartY(currentStage.data, pointRank(currentStage.data, p.id, i))"
+                        :cx="chartX(currentStage.data, i)"
+                        :cy="chartY(currentStage.data, pointRank(currentStage.data, p.id, i))"
                         r="7"
                         :fill="p.color"
                         class="chart-dot"
@@ -145,7 +157,9 @@
                     v-for="p in currentStage.data.players"
                     :key="'lbl-' + p.id"
                     :x="chartX(currentStage.data, chartStep) + 14"
-                    :y="chartY(currentStage.data, pointRank(currentStage.data, p.id, chartStep)) + 4"
+                    :y="
+                      chartY(currentStage.data, pointRank(currentStage.data, p.id, chartStep)) + 4
+                    "
                     class="chart-plabel"
                     :fill="p.color"
                   >
@@ -153,7 +167,8 @@
                   </text>
                 </svg>
                 <div class="chart-sub">
-                  Runde {{ currentStage.data.rounds[chartStep].round }} von {{ currentStage.data.rounds.length }}
+                  Runde {{ currentStage.data.rounds[chartStep].round }} von
+                  {{ currentStage.data.rounds.length }}
                 </div>
               </div>
             </template>
@@ -179,9 +194,7 @@
           <button v-if="hasNext" class="btn-next" @click="advance">
             {{ nextButtonLabel }}
           </button>
-          <button v-else class="btn-done" @click="endPresentation">
-            ✓ Fertig
-          </button>
+          <button v-else class="btn-done" @click="endPresentation">✓ Fertig</button>
           <span class="nav-hint">Pfeiltaste → oder Leertaste</span>
         </div>
       </div>
@@ -232,9 +245,7 @@ async function load() {
     ranking.value = Object.values(statsMap)
       .map((e) => ({ ...e, roundsPlayed: e.rounds.size }))
       .sort(
-        (a, b) =>
-          b.totalPoints - a.totalPoints ||
-          a.player.player_number - b.player.player_number
+        (a, b) => b.totalPoints - a.totalPoints || a.player.player_number - b.player.player_number,
       );
   } catch {
     error.value = "Spielstand konnte nicht geladen werden.";
@@ -265,7 +276,7 @@ const top3Progression = computed(() => {
     ...new Set(
       gamesCache.value
         .filter((g) => g.results.some((r) => r.points > 0))
-        .map((g) => g.round_number)
+        .map((g) => g.round_number),
     ),
   ].sort((a, b) => a - b);
   if (!roundNums.length) return null;
@@ -285,7 +296,9 @@ const top3Progression = computed(() => {
       .map((p) => ({ id: p.id, points: cumulative[p.id], num: p.player_number }))
       .sort((a, b) => b.points - a.points || a.num - b.num);
     const rankOf = {};
-    standing.forEach((s, i) => { rankOf[s.id] = i + 1; });
+    standing.forEach((s, i) => {
+      rankOf[s.id] = i + 1;
+    });
     rounds.push({
       round: rn,
       ranks: Object.fromEntries(top3.map((e) => [e.player.id, rankOf[e.player.id]])),
@@ -302,18 +315,19 @@ const top3Progression = computed(() => {
     medal: medals[i],
   }));
 
-  const maxRank = Math.max(
-    3,
-    ...rounds.flatMap((r) => players.map((p) => r.ranks[p.id] ?? 1))
-  );
+  const maxRank = Math.max(3, ...rounds.flatMap((r) => players.map((p) => r.ranks[p.id] ?? 1)));
 
   return { players, rounds, maxRank };
 });
 
 // Sichtbarer Fortschritt innerhalb der Verlaufs-Grafik (0 = erste Runde).
 const chartStep = ref(0);
-const chartMarginL = 46, chartMarginR = 24, chartMarginT = 30, chartMarginB = 40;
-const chartW = 860, chartH = 460;
+const chartMarginL = 46,
+  chartMarginR = 24,
+  chartMarginT = 30,
+  chartMarginB = 40;
+const chartW = 860,
+  chartH = 460;
 
 function chartX(data, i) {
   const n = data.rounds.length;
@@ -396,8 +410,10 @@ const presentationStages = computed(() => {
 
   if (top3Progression.value) stages.push({ type: "chart", data: top3Progression.value });
 
-  if (total >= 3) stages.push({ type: "podium", player: r[2], place: 3, medal: "🥉", glow: "#cd7f32" });
-  if (total >= 2) stages.push({ type: "podium", player: r[1], place: 2, medal: "🥈", glow: "#a8a8a8" });
+  if (total >= 3)
+    stages.push({ type: "podium", player: r[2], place: 3, medal: "🥉", glow: "#cd7f32" });
+  if (total >= 2)
+    stages.push({ type: "podium", player: r[1], place: 2, medal: "🥈", glow: "#a8a8a8" });
   stages.push({ type: "podium", player: r[0], place: 1, medal: "🥇", glow: "#ffd700" });
 
   return stages;
@@ -485,7 +501,10 @@ function launchConfetti(canvas) {
   }));
   let active = true;
   (function draw() {
-    if (!active) { ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
+    if (!active) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      return;
+    }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (const p of pieces) {
       ctx.save();
@@ -498,12 +517,20 @@ function launchConfetti(canvas) {
       p.x += p.vx;
       p.y += p.vy;
       p.angle += p.spin;
-      if (p.y > canvas.height + 10) { p.y = -10; p.x = Math.random() * canvas.width; }
+      if (p.y > canvas.height + 10) {
+        p.y = -10;
+        p.x = Math.random() * canvas.width;
+      }
     }
     requestAnimationFrame(draw);
   })();
-  const t = setTimeout(() => { active = false; }, 12000);
-  return () => { active = false; clearTimeout(t); };
+  const t = setTimeout(() => {
+    active = false;
+  }, 12000);
+  return () => {
+    active = false;
+    clearTimeout(t);
+  };
 }
 </script>
 
@@ -538,8 +565,13 @@ h3 {
   transform: translateY(-1px);
 }
 
-.muted { color: var(--color-text-muted); }
-.error { color: #c0392b; font-weight: 500; }
+.muted {
+  color: var(--color-text-muted);
+}
+.error {
+  color: #c0392b;
+  font-weight: 500;
+}
 
 .ranking-table {
   width: 100%;
@@ -563,10 +595,18 @@ h3 {
   border-bottom: 1px solid var(--color-border);
 }
 
-.ranking-table tbody tr:hover { background: var(--color-primary-light); }
+.ranking-table tbody tr:hover {
+  background: var(--color-primary-light);
+}
 
-.rank-col { width: 3.5rem; text-align: center; }
-.num-col { width: 6rem; text-align: right; }
+.rank-col {
+  width: 3.5rem;
+  text-align: center;
+}
+.num-col {
+  width: 6rem;
+  text-align: right;
+}
 
 .points {
   font-weight: 700;
@@ -579,7 +619,9 @@ h3 {
   margin-right: 0.35rem;
 }
 
-.top-row td { background: var(--color-primary-light); }
+.top-row td {
+  background: var(--color-primary-light);
+}
 
 /* ── Presentation overlay ────────────────────────────────────────────── */
 .pres-overlay {
@@ -587,14 +629,22 @@ h3 {
   inset: 0;
   z-index: 9999;
   background: #0a1a0e;
-  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.025) 1px, transparent 0);
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(255, 255, 255, 0.025) 1px,
+    transparent 0
+  );
   background-size: 36px 36px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   outline: none;
   overflow: hidden;
-  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family:
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 
 .confetti-canvas {
@@ -643,7 +693,9 @@ h3 {
   transform: scale(1.4);
 }
 
-.dot--done { background: rgba(212, 168, 67, 0.4); }
+.dot--done {
+  background: rgba(212, 168, 67, 0.4);
+}
 
 .btn-close {
   background: transparent;
@@ -888,11 +940,15 @@ h3 {
 
 /* Stage slide transition */
 .stg-enter-active {
-  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .stg-leave-active {
-  transition: opacity 0.22s ease, transform 0.22s ease;
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
 }
 
 .stg-enter-from {
@@ -907,19 +963,41 @@ h3 {
 
 /* Keyframes */
 @keyframes slideIn {
-  from { opacity: 0; transform: translateX(55px); }
-  to   { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(55px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes medalPop {
-  0%   { transform: scale(0.15) rotate(-22deg); opacity: 0; }
-  60%  { transform: scale(1.18) rotate(7deg);  opacity: 1; }
-  80%  { transform: scale(0.94) rotate(-3deg); }
-  100% { transform: scale(1)    rotate(0deg);  }
+  0% {
+    transform: scale(0.15) rotate(-22deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.18) rotate(7deg);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(0.94) rotate(-3deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
