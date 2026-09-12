@@ -77,9 +77,15 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: e2e/package-lock.json
+          cache-dependency-path: |
+            e2e/package-lock.json
+            frontend/package-lock.json
 
       - name: Install E2E dependencies
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: frontend
         run: npm ci
 
       - name: Install Playwright browsers
