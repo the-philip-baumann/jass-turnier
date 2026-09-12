@@ -5,8 +5,6 @@ from pydantic import BaseModel, ConfigDict
 
 class PlayerBase(BaseModel):
     name: str
-    email: str | None = None
-    registered: bool = False
 
 
 class PlayerCreate(BaseModel):
@@ -19,22 +17,12 @@ class PlayerUpdate(BaseModel):
     name: str
 
 
-class PlayerRegisteredUpdate(BaseModel):
-    registered: bool
-
-
 class Player(PlayerBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
     player_number: int
     group_number: int | None
     tournament_id: int
-
-
-class PlayerImportResult(BaseModel):
-    created: list[Player]
-    skipped_duplicates: int
-    skipped_invalid: int
 
 
 class TournamentBase(BaseModel):
@@ -61,7 +49,6 @@ class Tournament(TournamentBase):
     tables_per_row: int
     anzahl_ansagen: int
     status: str
-    players_imported: bool
 
 
 class TournamentDetail(Tournament):

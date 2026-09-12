@@ -15,7 +15,6 @@ class TestCreateTournament:
         assert body["rounds"] == 4
         assert body["num_groups"] == 2
         assert body["anzahl_ansagen"] == 1
-        assert body["players_imported"] is False
 
     def test_create_tournament_missing_fields(self, client):
         resp = client.post("/tournaments", json={"name": "Ohne Datum"})

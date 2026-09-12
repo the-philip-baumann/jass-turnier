@@ -226,9 +226,7 @@ async function load() {
     const [gamesRes] = await Promise.all([api.get(`/tournaments/${props.id}/games`)]);
     const games = gamesRes.data;
     gamesCache.value = games;
-    // No-shows (registered === false) never get a group_number when the
-    // tournament starts and never played a game — exclude them from the ranking.
-    const players = props.tournament.players.filter((p) => p.group_number != null);
+    const players = props.tournament.players;
     const statsMap = {};
     for (const player of players) {
       statsMap[player.id] = { player, totalPoints: 0, rounds: new Set() };
@@ -270,7 +268,7 @@ let stopConfetti = null;
 const top3Progression = computed(() => {
   if (ranking.value.length < 3) return null;
   const top3 = ranking.value.slice(0, 3);
-  const allPlayers = props.tournament.players.filter((p) => p.group_number != null);
+  const allPlayers = props.tournament.players;
 
   const roundNums = [
     ...new Set(

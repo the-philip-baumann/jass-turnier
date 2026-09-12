@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, Date, ForeignKey, Integer, String
+from sqlalchemy import Column, Date, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from app.db.session import Base
@@ -15,7 +15,6 @@ class Tournament(Base):
     tables_per_row = Column(Integer, nullable=False, default=4, server_default="4")
     anzahl_ansagen = Column(Integer, nullable=False, default=1, server_default="1")
     status = Column(String, nullable=False, default="setup", server_default="setup")
-    players_imported = Column(Boolean, nullable=False, default=False, server_default="false")
 
     players = relationship("Player", back_populates="tournament", cascade="all, delete-orphan")
     games = relationship("Game", back_populates="tournament", cascade="all, delete-orphan")
@@ -26,8 +25,6 @@ class Player(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
-    email = Column(String, nullable=True)
-    registered = Column(Boolean, nullable=False, default=False, server_default="false")
     player_number = Column(Integer, nullable=False)
     group_number = Column(Integer, nullable=True)
     tournament_id = Column(Integer, ForeignKey("tournaments.id"), nullable=False)

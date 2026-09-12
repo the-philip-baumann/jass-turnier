@@ -4,26 +4,21 @@ def make_tournament(client, name="Herbstturnier", date="2026-09-15"):
     return resp.json()
 
 
-def make_registered_players(client, tournament_id, count):
+def make_players(client, tournament_id, count):
     players = []
     for i in range(count):
         resp = client.post(
             f"/tournaments/{tournament_id}/players",
             json={"vorname": f"P{i}", "nachname": "Spieler"},
         )
-        player = resp.json()
-        client.patch(
-            f"/tournaments/{tournament_id}/players/{player['id']}/registered",
-            json={"registered": True},
-        )
-        players.append(player)
+        players.append(resp.json())
     return players
 
 
 class TestStartTournament:
     def test_start_tournament_happy_path(self, client):
         tournament = make_tournament(client)
-        make_registered_players(client, tournament["id"], 4)
+        make_players(client, tournament["id"], 4)
         client.patch(
             f"/tournaments/{tournament['id']}",
             json={"rounds": 1, "num_groups": 1, "tables_per_row": 4, "anzahl_ansagen": 1},
@@ -43,13 +38,13 @@ class TestStartTournament:
 
     def test_start_tournament_too_few_players(self, client):
         tournament = make_tournament(client)
-        make_registered_players(client, tournament["id"], 1)
+        make_players(client, tournament["id"], 1)
         resp = client.post(f"/tournaments/{tournament['id']}/start")
         assert resp.status_code == 400
 
     def test_start_tournament_twice_rejected(self, client):
         tournament = make_tournament(client)
-        make_registered_players(client, tournament["id"], 4)
+        make_players(client, tournament["id"], 4)
         client.patch(
             f"/tournaments/{tournament['id']}",
             json={"rounds": 1, "num_groups": 1, "tables_per_row": 4, "anzahl_ansagen": 1},
@@ -60,7 +55,7 @@ class TestStartTournament:
 
     def test_start_tournament_more_groups_than_players(self, client):
         tournament = make_tournament(client)
-        make_registered_players(client, tournament["id"], 2)
+        make_players(client, tournament["id"], 2)
         client.patch(
             f"/tournaments/{tournament['id']}",
             json={"rounds": 1, "num_groups": 5, "tables_per_row": 4, "anzahl_ansagen": 1},
@@ -72,7 +67,7 @@ class TestStartTournament:
 class TestResetTournament:
     def test_reset_tournament_happy_path(self, client):
         tournament = make_tournament(client)
-        make_registered_players(client, tournament["id"], 4)
+        make_players(client, tournament["id"], 4)
         client.patch(
             f"/tournaments/{tournament['id']}",
             json={"rounds": 1, "num_groups": 1, "tables_per_row": 4, "anzahl_ansagen": 1},
@@ -126,7 +121,7 @@ class TestCreateAndListGames:
 class TestGameResults:
     def _setup_started_tournament_with_game(self, client):
         tournament = make_tournament(client)
-        make_registered_players(client, tournament["id"], 4)
+        make_players(client, tournament["id"], 4)
         client.patch(
             f"/tournaments/{tournament['id']}",
             json={"rounds": 1, "num_groups": 1, "tables_per_row": 4, "anzahl_ansagen": 1},

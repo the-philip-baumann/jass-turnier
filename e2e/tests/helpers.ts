@@ -13,7 +13,7 @@ export async function createTournament(request: APIRequestContext, namePrefix: s
   return { id: body.id as number, name };
 }
 
-/** Adds a manually-entered (auto-registered) player via the UI form on the Spielerverwaltung tab. */
+/** Adds a manually-entered player via the UI form on the Spielerverwaltung tab. */
 export async function addPlayerViaUi(page: Page, vorname: string, nachname: string) {
   await page.getByPlaceholder("Vorname").fill(vorname);
   await page.getByPlaceholder("Nachname").fill(nachname);

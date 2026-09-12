@@ -16,18 +16,10 @@ with engine.connect() as conn:
             "anzahl_ansagen INTEGER NOT NULL DEFAULT 1"
         )
     )
-    conn.execute(text("ALTER TABLE players ADD COLUMN IF NOT EXISTS email VARCHAR"))
-    conn.execute(
-        text(
-            "ALTER TABLE players ADD COLUMN IF NOT EXISTS registered BOOLEAN NOT NULL DEFAULT false"
-        )
-    )
-    conn.execute(
-        text(
-            "ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS "
-            "players_imported BOOLEAN NOT NULL DEFAULT false"
-        )
-    )
+    # Drop columns from the removed CSV-Anmeldeliste-Import / Anmeldestatus-Feature.
+    conn.execute(text("ALTER TABLE tournaments DROP COLUMN IF EXISTS players_imported"))
+    conn.execute(text("ALTER TABLE players DROP COLUMN IF EXISTS registered"))
+    conn.execute(text("ALTER TABLE players DROP COLUMN IF EXISTS email"))
     # Backfill any rows left without a number from a previous version, so existing data stays valid.
     conn.execute(
         text(

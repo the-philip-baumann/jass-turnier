@@ -1,16 +1,16 @@
 import { test, expect } from "@playwright/test";
 import { createTournament, addPlayerViaUi, API_BASE } from "./helpers";
 
-test("Start scheitert bei zu wenigen angemeldeten Spielern", async ({ page, request }) => {
+test("Start scheitert bei zu wenigen Spielern", async ({ page, request }) => {
   const { id } = await createTournament(request, "ZuWenigSpieler");
   await page.goto(`/tournaments/${id}/spielerverwaltung`);
   await addPlayerViaUi(page, "Solo", "Spieler");
 
   await page.getByRole("button", { name: "▶ Turnier starten" }).click();
-  await expect(page.getByText("mindestens 2 angemeldete Spieler")).toBeVisible();
+  await expect(page.getByText("mindestens 2 Spieler")).toBeVisible();
 });
 
-test("Start scheitert bei mehr Gruppen als angemeldeten Spielern", async ({ page, request }) => {
+test("Start scheitert bei mehr Gruppen als Spielern", async ({ page, request }) => {
   const { id } = await createTournament(request, "ZuVieleGruppen");
   await request.patch(`${API_BASE}/tournaments/${id}`, {
     data: { rounds: 1, num_groups: 5, tables_per_row: 2, anzahl_ansagen: 1 },
@@ -20,7 +20,7 @@ test("Start scheitert bei mehr Gruppen als angemeldeten Spielern", async ({ page
   await addPlayerViaUi(page, "Beat", "Meier");
 
   await page.getByRole("button", { name: "▶ Turnier starten" }).click();
-  await expect(page.getByText("Mehr Gruppen als angemeldete Spieler")).toBeVisible();
+  await expect(page.getByText("Mehr Gruppen als Spieler")).toBeVisible();
 });
 
 test("Doppelte Spielernummer wird abgelehnt", async ({ page, request }) => {
