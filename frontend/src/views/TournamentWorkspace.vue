@@ -21,6 +21,7 @@
       <router-link :to="`/tournaments/${id}/spielplan`">📋 Spielplan</router-link>
       <router-link :to="`/tournaments/${id}/sitzplan`">🪑 Sitzplan</router-link>
       <router-link :to="`/tournaments/${id}/spielerverwaltung`">👥 Spielerverwaltung</router-link>
+      <router-link :to="`/tournaments/${id}/sponsoren`">🤝 Sponsoren</router-link>
       <router-link :to="`/tournaments/${id}/konfiguration`">⚙️ Konfiguration</router-link>
       <router-link v-if="tournament.status === 'started'" :to="`/tournaments/${id}/spielstand`"
         >🏆 Spielstand</router-link
@@ -53,7 +54,7 @@ const startError = ref("");
 
 // Order matches the tab bar; Spielstand only appears once the tournament started.
 const tabRoutes = computed(() => {
-  const base = ["spielplan", "sitzplan", "spielerverwaltung", "konfiguration"];
+  const base = ["spielplan", "sitzplan", "spielerverwaltung", "sponsoren", "konfiguration"];
   if (tournament.value?.status === "started") base.push("spielstand");
   return base;
 });
@@ -62,12 +63,13 @@ const TAB_LABELS = {
   spielplan: "Spielplan",
   sitzplan: "Sitzplan",
   spielerverwaltung: "Spielerverwaltung",
+  sponsoren: "Sponsoren",
   konfiguration: "Konfiguration",
   spielstand: "Spielstand",
 };
 
 useKeyboardShortcuts(
-  [0, 1, 2, 3, 4].map((i) => ({
+  [0, 1, 2, 3, 4, 5].map((i) => ({
     keys: String(i + 1),
     description: `Tab "${TAB_LABELS[tabRoutes.value[i]] ?? "?"}" öffnen`,
     group: "Navigation",

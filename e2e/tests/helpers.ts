@@ -68,3 +68,20 @@ export async function startTournamentViaApi(request: APIRequestContext, id: numb
   if (!res.ok()) throw new Error(`start_tournament failed: ${res.status()} ${await res.text()}`);
   return res.json();
 }
+
+// Minimal 1x1 transparent PNG, reused as a valid "logo" upload fixture — small
+// enough to inline here instead of shipping a binary file in the repo.
+const TINY_PNG_BASE64 =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==";
+
+/** Fills the Sponsoren "erfassen"-form (name + logo file) and submits it. */
+export async function addSponsorViaUi(page: Page, name: string) {
+  await page.getByPlaceholder("Sponsorname").fill(name);
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "logo.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(TINY_PNG_BASE64, "base64"),
+  });
+  await page.getByRole("button", { name: "+ Hinzufügen" }).click();
+  await page.getByText(name).waitFor();
+}

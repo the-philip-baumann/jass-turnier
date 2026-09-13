@@ -82,3 +82,10 @@ class Game(GameCreate):
 class GameScoreUpdate(BaseModel):
     team1_score: int
     team2_score: int
+
+
+class Sponsor(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    tournament_id: int

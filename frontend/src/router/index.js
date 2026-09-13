@@ -4,6 +4,7 @@ import TournamentWorkspace from "../views/TournamentWorkspace.vue";
 import Spielplan from "../views/Spielplan.vue";
 import Sitzplan from "../views/Sitzplan.vue";
 import Spielerverwaltung from "../views/Spielerverwaltung.vue";
+import Sponsoren from "../views/Sponsoren.vue";
 import Konfiguration from "../views/Konfiguration.vue";
 import Spielstand from "../views/Spielstand.vue";
 
@@ -23,6 +24,7 @@ const routes = [
         component: Spielerverwaltung,
         props: true,
       },
+      { path: "sponsoren", name: "sponsoren", component: Sponsoren, props: true },
       { path: "konfiguration", name: "konfiguration", component: Konfiguration, props: true },
       { path: "spielstand", name: "spielstand", component: Spielstand, props: true },
     ],

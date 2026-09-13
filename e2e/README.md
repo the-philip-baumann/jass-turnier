@@ -51,3 +51,4 @@ genau den Zustand der Seite im Moment des Fehlers.
 - `05-full-e2e.spec.ts` – kompletter Durchlauf über die UI (die "Generalprobe")
 - `06-edge-cases.spec.ts` – zu wenige Spieler, zu viele Gruppen, doppelte Nummer, Löschen, Reload
 - `07-grossturnier-64-spieler.spec.ts` – Grossturnier-Stresstest: 64 Spieler, 6 Runden, 16 Tische/Runde, alle 96 Spiele bewertet, finale Rangliste rechnerisch verifiziert (Laufzeit ~35–40s)
+- `08-sponsoren.spec.ts` – Sponsoren erfassen/entfernen vor Turnierstart, read-only Ansicht nach dem Start, Vollbild-Slideshow (öffnen, per Punkt/Pfeiltaste durchblättern, per Escape schliessen)

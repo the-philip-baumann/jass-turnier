@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Date, ForeignKey, Integer, String
+from sqlalchemy import Column, Date, ForeignKey, Integer, LargeBinary, String
 from sqlalchemy.orm import relationship
 
 from app.db.session import Base
@@ -18,6 +18,7 @@ class Tournament(Base):
 
     players = relationship("Player", back_populates="tournament", cascade="all, delete-orphan")
     games = relationship("Game", back_populates="tournament", cascade="all, delete-orphan")
+    sponsors = relationship("Sponsor", back_populates="tournament", cascade="all, delete-orphan")
 
 
 class Player(Base):
@@ -56,3 +57,15 @@ class GameResult(Base):
 
     game = relationship("Game", back_populates="results")
     player = relationship("Player", back_populates="results")
+
+
+class Sponsor(Base):
+    __tablename__ = "sponsors"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    logo_data = Column(LargeBinary, nullable=False)
+    logo_content_type = Column(String, nullable=False)
+    tournament_id = Column(Integer, ForeignKey("tournaments.id"), nullable=False)
+
+    tournament = relationship("Tournament", back_populates="sponsors")
